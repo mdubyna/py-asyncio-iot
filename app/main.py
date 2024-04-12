@@ -12,8 +12,8 @@ async def run_sequence(functions: Awaitable[Any]) -> None:
         await function
 
 
-async def run_parallel(*functions: Awaitable[Any]) -> None:
-    await asyncio.gather(*functions)
+async def run_parallel(*functions: Awaitable[Any]) -> tuple[Any]:
+    return await asyncio.gather(*functions)
 
 
 async def main() -> None:
@@ -24,10 +24,11 @@ async def main() -> None:
     hue_light = HueLightDevice()
     speaker = SmartSpeakerDevice()
     toilet = SmartToiletDevice()
-    devices = [hue_light, speaker, toilet]
 
-    hue_light_id, speaker_id, toilet_id = await asyncio.gather(
-        *[service.register_device(device) for device in devices]
+    hue_light_id, speaker_id, toilet_id = await run_parallel(
+        service.register_device(hue_light),
+        service.register_device(speaker),
+        service.register_device(toilet)
     )
 
     await run_sequence(
